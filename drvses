@@ -1,0 +1,31 @@
+#!/bin/sh
+# DrvSes - drive session
+
+DRIVE=$1
+
+if [ -z "$DRIVE" ]; then
+    echo "Nothing specified! Usage: $0 <device>"
+    exit
+fi
+
+if ! blkid $DRIVE | grep -q "TYPE"; then
+    echo "$DRIVE is not valid or is not allowed to be mounted by drvses! Run as root to mount it correctly."
+    exit
+fi
+
+udisksctl mount -b $DRIVE
+if [ $? -ne 0 ]; then
+    echo "Failed to mount $DRIVE! Make sure it is not mounted anywhere else."
+    exit
+fi
+
+MOUNT_POINT=$(findmnt -nr -S $DRIVE -o TARGET)
+
+cleanup() {
+    udisksctl unmount -b $DRIVE
+}
+
+trap cleanup EXIT INT TERM
+
+DRVSES_ENV="IS_DRVSES=1 DRIVE_MOUNT=$MOUNT_POINT DRVSES_DRIVE=$DRIVE"
+(cd $MOUNT_POINT; eval "$DRVSES_ENV $SHELL")
