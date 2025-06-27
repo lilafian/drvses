@@ -8,7 +8,7 @@ if [ -z "$DRIVE" ]; then
     exit
 fi
 
-if ! blkid $DRIVE | grep -q "TYPE"; then
+if ! sudo blkid $DRIVE | grep -q "TYPE"; then
     echo "$DRIVE is not valid or is not allowed to be mounted by drvses! Run as root to mount it correctly."
     exit
 fi
